@@ -10,7 +10,6 @@ build-*/
 *.swp
 *.swo
 compile_commands.json
-results*.csv
 perf.data*
 *.dot
 *.png
