@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/mohitt31/mf-kernels/actions/workflows/ci.yml/badge.svg)](https://github.com/mohitt31/mf-kernels/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Five C++17 shape-matrix application kernels and a 3D sum-factorization driver that drastically reduce the $\mathcal{O}(n_q^3 n_d^3)$ cost of high-order finite element evaluation by leveraging sum-factorization down to $\mathcal{O}(n_d^{d+1})$.
+Five C++17 shape-matrix application kernels and a 3D sum-factorization driver that drastically reduce the $\mathcal{O}(p^{2d})$ cost of high-order finite element evaluation by leveraging sum-factorization down to $\mathcal{O}(d \cdot p^{d+1})$.
 
 High-order finite element methods evaluate field values at quadrature points by applying a tensor-product operator $V = (S \otimes S \otimes S) U$. Sum factorization rearranges this into three 1D contractions. This repository explores optimizing the extremely hot inner loop of this contraction to reach peak hardware utilization.
 
@@ -12,7 +12,7 @@ High-order finite element methods evaluate field values at quadrature points by 
 The inner loop applies a 1D shape matrix across a spectator dimension. This repository implements it in five ways:
 
 - **`naive`**: Direct triple loop. Relies on the compiler's auto-vectorizer and serves as the honest baseline.
-- **`pitfall`**: "Helps" the compiler by using an explicit per-lane accumulator array, which severely backfires on x86 due to `vpermpd`-based broadcasts.
+- **`pitfall`**: "Helps" the compiler by using an explicit per-lane accumulator array, which severely backfires on x86, degrading performance by 3-4× compared to naive.
 - **`avx2`**: Explicit AVX2 SIMD with `_mm256_broadcast_sd` and `_mm256_fmadd_pd`, using a single accumulator per quadrature point.
 - **`avx2_blocked`**: Same as `avx2`, but uses 2-way register blocking across quadrature points to amortize the shape-matrix load and expose more independent FMA chains.
 - **`evenodd_avx2`**: Algorithmic optimization exploiting the symmetry of the shape matrix to halve the total FMA count.

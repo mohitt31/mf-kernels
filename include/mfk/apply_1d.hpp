@@ -13,7 +13,7 @@
 // Sum factorization applies this kernel three times (in 3D) to evaluate the
 // full tensor-product basis at the volume quadrature points. The same kernel,
 // in transposed form, handles integration. The cost per cell is O(d · p^(d+1))
-// vs O(p^(2d)) for naive evaluation — for Q5 elements in 3D that's a 5×
+// vs O(p^(2d)) for naive evaluation — for Q5 elements (p=5) in 3D that's an 8.3×
 // reduction in FLOPs.
 //
 // All implementations here process *4 cells at once* in AVX2 lanes, mirroring

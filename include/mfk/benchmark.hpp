@@ -52,6 +52,7 @@ inline int auto_iters(F&& f, double target_seconds = 0.5) {
   f();
   t.stop();
   const double one = t.seconds();
+  if (one <= 0.0) return 1000;
   if (one >= target_seconds) return 1;
   return static_cast<int>(target_seconds / one) + 1;
 }

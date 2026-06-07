@@ -101,8 +101,13 @@ std::vector<Row> bench_1d(int p, double target_seconds, std::mt19937_64& rng) {
 
   const double flops_per_call = standard_flops(n_q, n_d, n_spec);
 
-  auto bench = [&](const char* name, auto&& call) {
-    auto run = [&] { call(); };
+  auto bench = [&](const char* name, auto&& call, double* out_ptr) {
+    auto run = [&] {
+      call();
+#if defined(__GNUC__) || defined(__clang__)
+      asm volatile("" : : "r,m"(out_ptr) : "memory");
+#endif
+    };
     const int iters = auto_iters(run, target_seconds);
     std::vector<double> samples;
     for (int rep = 0; rep < 5; ++rep) {
@@ -115,14 +120,14 @@ std::vector<Row> bench_1d(int p, double target_seconds, std::mt19937_64& rng) {
 
   std::vector<Row> rows;
   rows.push_back(bench("naive",
-    [&]{ apply_1d_naive(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }));
+    [&]{ apply_1d_naive(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }, v.get()));
   rows.push_back(bench("pitfall",
-    [&]{ apply_1d_pitfall(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }));
+    [&]{ apply_1d_pitfall(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }, v.get()));
 #if defined(__AVX2__)
   rows.push_back(bench("avx2",
-    [&]{ apply_1d_avx2(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }));
+    [&]{ apply_1d_avx2(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }, v.get()));
   rows.push_back(bench("avx2_blocked",
-    [&]{ apply_1d_avx2_blocked(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }));
+    [&]{ apply_1d_avx2_blocked(S.get(), u.get(), v.get(), n_q, n_d, n_spec); }, v.get()));
   if (n_d == n_q && n_d % 2 == 0) {
     const int half = n_d / 2;
     auto Sp = make_aligned<double>(static_cast<std::size_t>(half) * half);
@@ -130,7 +135,7 @@ std::vector<Row> bench_1d(int p, double target_seconds, std::mt19937_64& rng) {
     build_evenodd_blocks(S.get(), Sp.get(), Sm.get(), n_q, n_d);
     rows.push_back(bench("evenodd_avx2",
       [&]{ apply_1d_evenodd_avx2(Sp.get(), Sm.get(), u.get(), v.get(),
-                                 n_q, n_d, n_spec); }));
+                                 n_q, n_d, n_spec); }, v.get()));
   }
 #endif
 

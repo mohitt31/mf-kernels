@@ -6,10 +6,10 @@
 //
 //     V(q1,q2,q3) = Σ_{i1,i2,i3} S(q1,i1) S(q2,i2) S(q3,i3) U(i1,i2,i3)
 //
-// naively costs O(n_q^3 · n_d^3). Sum factorization rearranges it as three
+// naively costs O(p^(2d)). Sum factorization rearranges it as three
 // sequential 1D applies (with reshape/transpose between them) for a total
-// cost of O(3 · n_q · n_d · (n_q · n_d)^2 / (n_q · n_d)) = O(n_q^3 · n_d) per
-// cell — a factor of n_d^2 better. For Q5 elements (n_d=6) that's 36×.
+// cost of O(d · p^(d+1)) per cell — a reduction by a factor of p^(d-1)/d.
+// For Q5 elements (p=5, d=3) that's an 8.3× reduction.
 //
 // The three passes (index-i₁ first, then i₂, then i₃) each call apply_1d
 // with a different value of n_spec (the spectator dimension product):
