@@ -13,3 +13,6 @@ compile_commands.json
 perf.data*
 *.dot
 *.png
+EMAIL_DRAFTS.md
+*_DRAFTS.md
+*.private.md
