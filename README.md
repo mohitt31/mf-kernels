@@ -12,7 +12,7 @@ High-order finite element methods evaluate field values at quadrature points by 
 The inner loop applies a 1D shape matrix across a spectator dimension. This repository implements it in five ways:
 
 - **`naive`**: Direct triple loop. Relies on the compiler's auto-vectorizer and serves as the honest baseline.
-- **`pitfall`**: Attempts to "help" the compiler by using an explicit per-lane accumulator array. While it slightly outperforms the scalar `naive` code, it severely underperforms explicit AVX2 by ~4×. This happens because `gcc 13.3` lowers the broadcasts via 8 occurrences of `vpermpd` instead of `vbroadcastsd` (verified in `asm/pitfall_vs_naive.s`), capping its throughput.
+- **`pitfall`**: Attempts to "help" the compiler by using an explicit per-lane accumulator array. While it slightly outperforms the scalar `naive` code, it severely underperforms explicit AVX2 by ~4×. This happens because `gcc 13.3` lowers the broadcasts via 8 occurrences of `vpermpd` instead of `vbroadcastsd` (verified in the assembly output described in `asm/README.md`), capping its throughput.
 - **`avx2`**: Explicit AVX2 SIMD with `_mm256_broadcast_sd` and `_mm256_fmadd_pd`, using a single accumulator per quadrature point.
 - **`avx2_blocked`**: Same as `avx2`, but uses 2-way register blocking across quadrature points to amortize the shape-matrix load and expose more independent FMA chains.
 - **`evenodd_avx2`**: Algorithmic optimization exploiting the symmetry of the shape matrix to halve the total FMA count.
