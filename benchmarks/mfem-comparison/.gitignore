@@ -1,0 +1,6 @@
+results/*
+!results/.gitkeep
+!results/*.csv
+!results/env.txt
+!results/*.png
+!results/diff_*.txt

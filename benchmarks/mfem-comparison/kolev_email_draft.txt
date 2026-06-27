@@ -1,0 +1,33 @@
+DRAFT — do not send until the EPYC numbers and the 1e-13 diff are filled in.
+Recipient: Tzanio Kolev <kolev1@llnl.gov>
+Attach: WRITEUP.md (or its PDF) + results/dofs_per_sec_bp1.png, dofs_per_sec_bp3.png
+Voice: methodology-first, understated, no claims beyond what the table supports.
+
+---
+
+Subject: BP1/BP3 comparison: mf-kernels vs MFEM PA + libCEED
+
+Hi Dr. Kolev,
+
+I put together the like-for-like comparison we discussed. BP1 and BP3, 3D hex,
+GLL basis with the CEED q = p+2 rule, p = 1..8, on a single AMD EPYC core
+(gcc 13.3, -O3 -march=native), against MFEM native PA and libCEED avx/xsmm
+blocked, all on the same build. To keep it fair I extended mf-kernels to the full
+G^T B^T D B G operator and fed it MFEM's own basis, quadrature data, and element
+restriction, so the outputs agree to [[max 1e-13]] on the global vector and the
+DOF/FLOP accounting is identical across all four.
+
+Short version: against libCEED blocked (the closest match, since both batch
+elements into SIMD lanes) mf-kernels is [[within X% / ahead / behind]] on the
+contraction, with the gap [[narrowing/…]] once gather and scatter are included.
+I have not claimed anything beyond that one operator on a structured mesh, and
+I have written up the caveats I am least sure about (q = p+2 choice, the shared
+GFLOP/s convention, single-core scope) in a flags section.
+
+Write-up and plots attached; full harness and scripts are in the repo at
+benchmarks/mfem-comparison. If the methodology looks right to you, the natural
+next step is single-socket scaling with a colored scatter. Happy to adjust the
+convention if you would rather I compare against a collocated q = p+1 rule.
+
+Thanks,
+Mohit
