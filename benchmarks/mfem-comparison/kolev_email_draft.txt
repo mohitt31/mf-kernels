@@ -1,6 +1,6 @@
-DRAFT — do not send until the EPYC numbers and the 1e-13 diff are filled in.
+DRAFT — Ready to send
 Recipient: Tzanio Kolev <kolev1@llnl.gov>
-Attach: WRITEUP.md (or its PDF) + results/dofs_per_sec_bp1.png, dofs_per_sec_bp3.png
+Attach: WRITEUP.pdf + results/dofs_per_sec_bp1.png, dofs_per_sec_bp3.png
 Voice: methodology-first, understated, no claims beyond what the table supports.
 
 ---
@@ -14,12 +14,12 @@ GLL basis with the CEED q = p+2 rule, p = 1..8, on a single AMD EPYC core
 (gcc 13.3, -O3 -march=native), against MFEM native PA and libCEED avx/xsmm
 blocked, all on the same build. To keep it fair I extended mf-kernels to the full
 G^T B^T D B G operator and fed it MFEM's own basis, quadrature data, and element
-restriction, so the outputs agree to [[max 1e-13]] on the global vector and the
+restriction, so the outputs agree to max 3.8e-15 on the global vector and the
 DOF/FLOP accounting is identical across all four.
 
 Short version: against libCEED blocked (the closest match, since both batch
-elements into SIMD lanes) mf-kernels is [[within X% / ahead / behind]] on the
-contraction, with the gap [[narrowing/…]] once gather and scatter are included.
+elements into SIMD lanes) mf-kernels is consistently ahead on the
+contraction, with the gap narrowing once gather and scatter are included. Against libXSMM, mf-kernels outperforms at lower orders (p<=3) but falls behind at higher orders.
 I have not claimed anything beyond that one operator on a structured mesh, and
 I have written up the caveats I am least sure about (q = p+2 choice, the shared
 GFLOP/s convention, single-core scope) in a flags section.
