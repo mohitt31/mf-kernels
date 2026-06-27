@@ -1,0 +1,10 @@
+p=1 NE=27 vsize=64  maxabs=2.082e-17  maxrel=9.700e-16  ok
+p=2 NE=27 vsize=343  maxabs=7.806e-18  maxrel=7.816e-16  ok
+p=3 NE=27 vsize=1000  maxabs=2.168e-18  maxrel=6.833e-16  ok
+p=4 NE=27 vsize=2197  maxabs=3.469e-18  maxrel=2.231e-15  ok
+p=5 NE=27 vsize=4096  maxabs=1.409e-18  maxrel=1.474e-15  ok
+p=6 NE=27 vsize=6859  maxabs=1.084e-18  maxrel=1.834e-15  ok
+p=7 NE=27 vsize=10648  maxabs=9.216e-19  maxrel=2.471e-15  ok
+p=8 NE=27 vsize=15625  maxabs=4.879e-19  maxrel=1.869e-15  ok
+
+variant=evenodd  worst abs=2.082e-17  worst rel=2.471e-15  -> PASS (threshold 1e-13)
