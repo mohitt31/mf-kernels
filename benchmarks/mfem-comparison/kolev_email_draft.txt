@@ -1,7 +1,7 @@
-DRAFT — Ready to send
-Recipient: Tzanio Kolev <kolev1@llnl.gov>
-Attach: WRITEUP.pdf + results/dofs_per_sec_bp1.png, dofs_per_sec_bp3.png
-Voice: methodology-first, understated, no claims beyond what the table supports.
+Ready to send. Recipient: Tzanio Kolev <kolev1@llnl.gov>
+Attach: WRITEUP.pdf + results/dofs_per_sec_bp1.png, results/dofs_per_sec_bp3.png
+Repo folder: benchmarks/mfem-comparison
+Voice: methodology-first, understated, claims limited to the table.
 
 ---
 
@@ -9,25 +9,29 @@ Subject: BP1/BP3 comparison: mf-kernels vs MFEM PA + libCEED
 
 Hi Dr. Kolev,
 
-I put together the like-for-like comparison we discussed. BP1 and BP3, 3D hex,
-GLL basis with the CEED q = p+2 rule, p = 1..8, on a single AMD EPYC core
-(gcc 13.3, -O3 -march=native), against MFEM native PA and libCEED avx/xsmm
-blocked, all on the same build. To keep it fair I extended mf-kernels to the full
-G^T B^T D B G operator and fed it MFEM's own basis, quadrature data, and element
-restriction, so the outputs agree to max 3.8e-15 on the global vector and the
-DOF/FLOP accounting is identical across all four.
+I finished the like-for-like comparison we discussed. BP1 and BP3, 3D hex, GLL
+basis with the CEED q = p+2 rule, p = 1..8, on a single AMD EPYC 7763 core
+(gcc 13.3, -O3 -march=native), against MFEM native PA and libCEED avx/xsmm blocked,
+all on the same build. To keep it fair I extended mf-kernels to the full
+G^T B^T D B G operator and validated it against MFEM's own output: on identical
+input and element restriction the global vectors agree to 3.8e-15 across all orders
+and both operators, with the mass-of-ones and stiffness-of-ones invariants matching
+exactly, so the DOF accounting is identical across all four.
 
-Short version: against libCEED blocked (the closest match, since both batch
-elements into SIMD lanes) mf-kernels is consistently ahead on the
-contraction, with the gap narrowing once gather and scatter are included. Against libXSMM, mf-kernels outperforms at lower orders (p<=3) but falls behind at higher orders.
-I have not claimed anything beyond that one operator on a structured mesh, and
-I have written up the caveats I am least sure about (q = p+2 choice, the shared
-GFLOP/s convention, single-core scope) in a flags section.
+Result: mf-kernels' blocked AVX2 kernel beats MFEM native partial assembly at every
+order on both operators (close to 2x in places), and beats libCEED's own AVX blocked
+backend across the whole range. The only thing ahead of it is libCEED with LIBXSMM,
+and only at higher order, where mf-kernels trails by roughly 15 to 25 percent; at low
+order mf-kernels leads. The even-odd variant does not beat plain blocking once
+gather and scatter are included, which fits a partly memory-bound full operator. I
+have written up the caveats I am least sure about (q = p+2 choice, the three
+different SIMD strategies, single-core scope, the cloud-VM timing) in a flags
+section rather than buried them.
 
-Write-up and plots attached; full harness and scripts are in the repo at
-benchmarks/mfem-comparison. If the methodology looks right to you, the natural
-next step is single-socket scaling with a colored scatter. Happy to adjust the
-convention if you would rather I compare against a collocated q = p+1 rule.
+Write-up and plots are attached; the full harness, correctness checks, and scripts
+are in the repo at benchmarks/mfem-comparison. If the methodology looks right to
+you, the natural next step is single-socket scaling with a colored scatter. Happy
+to also add a collocated q = p+1 variant if you would rather compare against that.
 
 Thanks,
 Mohit
