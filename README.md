@@ -11,7 +11,7 @@ High-order finite element methods evaluate field values at quadrature points by 
 
 The inner loop applies a 1D shape matrix across a spectator dimension, implemented five ways:
 
-- **`naive`**: Direct triple loop. Relies on the compiler's auto-vectorizer; the honest baseline.
+- **`naive`**: Direct triple loop. Relies on the compiler's auto-vectorizer; the baseline.
 - **`pitfall`**: Attempts to "help" the compiler with an explicit per-lane accumulator array. Underperforms explicit AVX2 by ~4× on x86 because gcc 13.3 lowers the broadcasts to `vpermpd` instead of `vbroadcastsd` (verified in generated assembly, see `asm/README.md`).
 - **`avx2`**: Explicit AVX2 SIMD, `_mm256_broadcast_sd` + `_mm256_fmadd_pd`, one accumulator per quadrature point.
 - **`avx2_blocked`**: Same as `avx2`, 2-way register blocking across quadrature points.
@@ -42,7 +42,7 @@ Default build uses `-O3 -march=native`.
 
 Reproduce with `./bench.sh`.
 
-> An earlier, un-guarded measurement made `naive` look artificially fast (~15 GFLOP/s) because the compiler eliminated the unused output loop; the escape barrier corrected it to the honest ~2.5 GFLOP/s. `pitfall` plateaus at ~3.8 GFLOP/s and underperforms explicit AVX2 by ~4× — traced in the generated assembly to `vpermpd` vs `vbroadcastsd`.
+> An earlier, un-guarded measurement made `naive` look artificially fast (~15 GFLOP/s) because the compiler eliminated the unused output loop; the escape barrier corrected it to the real ~2.5 GFLOP/s. `pitfall` plateaus at ~3.8 GFLOP/s and underperforms explicit AVX2 by ~4× — traced in the generated assembly to `vpermpd` vs `vbroadcastsd`.
 
 ## Full-operator benchmark: mf-kernels vs MFEM partial assembly vs libCEED
 
@@ -60,7 +60,7 @@ The kernel above is a bare 1D contraction. To find out whether it's actually com
 
 Full BP1 and BP3 tables (p = 1..8, five implementations each): [`WRITEUP.md` §4](benchmarks/mfem-comparison/WRITEUP.md).
 
-**Honest interpretation:**
+**Interpretation:**
 - mf-kernels' blocked variant beats MFEM native partial assembly at every order on both operators, often by close to 2×.
 - It also beats libCEED's own AVX blocked backend across the whole order range — the fairest single comparison, since both batch elements into SIMD lanes.
 - The only implementation that beats mf-kernels is libCEED with LIBXSMM, and only at higher order (mf-kernels trails by ~15-25% at p=8); mf-kernels leads at low order.
